@@ -1,0 +1,12 @@
+{
+  "name": "TimeMachineShared",
+  "version": "1.0.0",
+  "description": "Shared data structures and utilities for Time Machine ESP32 nodes",
+  "keywords": ["esp32", "platformio", "shared"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jreue/tm-shared.git"
+  },
+  "frameworks": ["arduino"],
+  "platforms": ["espressif32"]
+}
