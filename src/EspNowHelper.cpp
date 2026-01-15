@@ -1,6 +1,9 @@
 #include "EspNowHelper.h"
 
+EspNowHelper* EspNowHelper::instance = nullptr;
+
 EspNowHelper::EspNowHelper() : receiverAddress(nullptr) {
+  instance = this;
 }
 
 void EspNowHelper::begin(uint8_t* hubMacAddress, int scannerId) {
@@ -19,6 +22,7 @@ void EspNowHelper::begin(uint8_t* hubMacAddress, int scannerId) {
     return;
   }
 
+  esp_now_register_recv_cb(handleESPNowDataReceived);
   esp_now_register_send_cb(handleESPNowDataSent);
 
   Serial.println("Adding ESP-NOW Peers...");
@@ -33,6 +37,78 @@ void EspNowHelper::begin(uint8_t* hubMacAddress, int scannerId) {
     Serial.println("Failed to add HUB peer");
     return;
   }
+}
+
+void EspNowHelper::registerModuleMessageHandler(void (*handler)(const DeviceMessage&)) {
+  deviceMessageHandler = handler;
+}
+void EspNowHelper::registerDateMessageHandler(void (*handler)(const DateMessage&)) {
+  dateMessageHandler = handler;
+}
+void EspNowHelper::registerScannerMessageHandler(void (*handler)(const ScannerMessage&)) {
+  scannerMessageHandler = handler;
+}
+
+void EspNowHelper::callDeviceMessageHandler(const DeviceMessage& message) {
+  if (deviceMessageHandler != nullptr) {
+    deviceMessageHandler(message);
+  }
+}
+void EspNowHelper::callDateMessageHandler(const DateMessage& message) {
+  if (dateMessageHandler != nullptr) {
+    dateMessageHandler(message);
+  }
+}
+void EspNowHelper::callScannerMessageHandler(const ScannerMessage& message) {
+  if (scannerMessageHandler != nullptr) {
+    scannerMessageHandler(message);
+  }
+}
+
+void EspNowHelper::handleESPNowDataReceived(const uint8_t* mac, const uint8_t* incomingDataRaw,
+                                            int len) {
+  // Small delay to prevent serial corruption when called from WiFi task
+  delayMicroseconds(100);
+
+  // Read message header to determine type
+  EspNowHeader header;
+  memcpy(&header, incomingDataRaw, sizeof(EspNowHeader));
+
+  Serial.println("--- ESP-NOW Data Received ---");
+  Serial.print("MAC Address: ");
+  for (int i = 0; i < 6; i++) {
+    Serial.printf("%02X", mac[i]);
+    if (i < 5)
+      Serial.print(":");
+  }
+  Serial.println();
+
+  Serial.printf("ESP ID: %d\n", header.deviceId);
+  Serial.printf("Device Type: %d\n", header.deviceType);
+  Serial.printf("Message Type: %d\n", header.messageType);
+
+  if (instance == nullptr) {
+    Serial.println("ERROR: No EspNowHelper instance available");
+    return;
+  }
+
+  if (header.deviceType == DEVICE_TYPE_MODULE) {
+    DeviceMessage deviceMsg;
+    memcpy(&deviceMsg, incomingDataRaw, sizeof(DeviceMessage));
+    instance->callDeviceMessageHandler(deviceMsg);
+  } else if (header.deviceType == DEVICE_TYPE_DATE) {
+    DateMessage dateMsg;
+    memcpy(&dateMsg, incomingDataRaw, sizeof(DateMessage));
+    instance->callDateMessageHandler(dateMsg);
+  } else if (header.deviceType == DEVICE_TYPE_SCANNER) {
+    ScannerMessage scannerMsg;
+    memcpy(&scannerMsg, incomingDataRaw, sizeof(ScannerMessage));
+    instance->callScannerMessageHandler(scannerMsg);
+  } else {
+    Serial.println("Unknown message type received.");
+  }
+
+  Serial.println("-----------------------------");
 }
 
 void EspNowHelper::handleESPNowDataSent(const uint8_t* mac_addr, esp_now_send_status_t status) {
