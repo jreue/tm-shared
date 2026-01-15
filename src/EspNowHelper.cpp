@@ -85,6 +85,20 @@ void EspNowHelper::sendMessage(EspNowHeader& message, size_t messageSize) {
   }
 }
 
+void EspNowHelper::sendDateConnected() {
+  Serial.println("Sending Date Connected Message...");
+
+  DateMessage message;
+  message.deviceId = deviceId;
+  message.deviceType = DEVICE_TYPE_DATE;
+  message.messageType = MSG_TYPE_CONNECT;
+  message.month = 0;
+  message.day = 0;
+  message.year = 0;
+
+  sendMessage((EspNowHeader&)message, sizeof(message));
+}
+
 void EspNowHelper::sendScannerConnected() {
   Serial.println("Sending Scanner Connected Message...");
 
@@ -93,5 +107,25 @@ void EspNowHelper::sendScannerConnected() {
   message.deviceType = DEVICE_TYPE_SCANNER;
   message.messageType = MSG_TYPE_CONNECT;
 
+  sendMessage((EspNowHeader&)message, sizeof(message));
+}
+
+void EspNowHelper::sendDateUpdated(uint8_t month, uint8_t day, uint16_t year) {
+  Serial.println("Sending Date Updated Message...");
+
+  DateMessage message;
+  message.deviceId = deviceId;
+  message.deviceType = DEVICE_TYPE_DATE;
+  message.messageType = MSG_TYPE_DATA;
+  message.month = month;
+  message.day = day;
+  message.year = year;
+
+  Serial.print("  → Date: ");
+  Serial.print(month);
+  Serial.print("/");
+  Serial.print(day);
+  Serial.print("/");
+  Serial.println(year);
   sendMessage((EspNowHeader&)message, sizeof(message));
 }

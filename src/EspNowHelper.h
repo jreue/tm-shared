@@ -10,7 +10,11 @@ class EspNowHelper {
     EspNowHelper();
 
     void begin(uint8_t* hubMacAddress, int deviceId);
+
+    void sendDateConnected();
     void sendScannerConnected();
+
+    void sendDateUpdated(uint8_t month, uint8_t day, uint16_t year);
 
   private:
     uint8_t* receiverAddress;
