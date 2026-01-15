@@ -110,6 +110,18 @@ void EspNowHelper::sendScannerConnected() {
   sendMessage((EspNowHeader&)message, sizeof(message));
 }
 
+void EspNowHelper::sendModuleConnected() {
+  Serial.println("Sending Module Connected Message");
+
+  DeviceMessage message;
+  message.deviceId = deviceId;
+  message.deviceType = DEVICE_TYPE_MODULE;
+  message.messageType = MSG_TYPE_CONNECT;
+  message.isCalibrated = false;
+
+  sendMessage((EspNowHeader&)message, sizeof(message));
+}
+
 void EspNowHelper::sendDateUpdated(uint8_t month, uint8_t day, uint16_t year) {
   Serial.println("Sending Date Updated Message...");
 
@@ -127,5 +139,20 @@ void EspNowHelper::sendDateUpdated(uint8_t month, uint8_t day, uint16_t year) {
   Serial.print(day);
   Serial.print("/");
   Serial.println(year);
+  sendMessage((EspNowHeader&)message, sizeof(message));
+}
+
+void EspNowHelper::sendModuleUpdated(bool isCalibrated) {
+  Serial.println("Sending Module Updated Message...");
+
+  DeviceMessage message;
+  message.deviceId = deviceId;
+  message.deviceType = DEVICE_TYPE_MODULE;
+  message.messageType = MSG_TYPE_DATA;
+  message.isCalibrated = isCalibrated;
+
+  Serial.print("  → isCalibrated: ");
+  Serial.println(isCalibrated ? "true" : "false");
+
   sendMessage((EspNowHeader&)message, sizeof(message));
 }

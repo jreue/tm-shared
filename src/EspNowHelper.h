@@ -13,8 +13,10 @@ class EspNowHelper {
 
     void sendDateConnected();
     void sendScannerConnected();
+    void sendModuleConnected();
 
     void sendDateUpdated(uint8_t month, uint8_t day, uint16_t year);
+    void sendModuleUpdated(bool isCalibrated);
 
   private:
     uint8_t* receiverAddress;
