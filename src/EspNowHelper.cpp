@@ -6,9 +6,9 @@ EspNowHelper::EspNowHelper() : receiverAddress(nullptr) {
   instance = this;
 }
 
-void EspNowHelper::begin(uint8_t* hubMacAddress, int scannerId) {
-  receiverAddress = hubMacAddress;
-  deviceId = scannerId;
+void EspNowHelper::begin(uint8_t* receiverMacAddress, int id) {
+  receiverAddress = receiverMacAddress;
+  deviceId = id;
 
   // Set device as a Wi-Fi Station
   WiFi.mode(WIFI_STA);
@@ -28,19 +28,19 @@ void EspNowHelper::begin(uint8_t* hubMacAddress, int scannerId) {
   Serial.println("Adding ESP-NOW Peers...");
   esp_now_peer_info_t peerInfo;
   memset(&peerInfo, 0, sizeof(peerInfo));
-  memcpy(peerInfo.peer_addr, hubMacAddress, 6);
+  memcpy(peerInfo.peer_addr, receiverAddress, 6);
   peerInfo.channel = 0;
   peerInfo.encrypt = false;
 
   // Add HUB peer
   if (esp_now_add_peer(&peerInfo) != ESP_OK) {
-    Serial.println("Failed to add HUB peer");
+    Serial.println("Failed to add peer");
     return;
   }
 }
 
-void EspNowHelper::registerModuleMessageHandler(void (*handler)(const DeviceMessage&)) {
-  deviceMessageHandler = handler;
+void EspNowHelper::registerModuleMessageHandler(void (*handler)(const ShieldModuleMessage&)) {
+  moduleMessageHandler = handler;
 }
 void EspNowHelper::registerDateMessageHandler(void (*handler)(const DateMessage&)) {
   dateMessageHandler = handler;
@@ -49,9 +49,9 @@ void EspNowHelper::registerScannerMessageHandler(void (*handler)(const ScannerMe
   scannerMessageHandler = handler;
 }
 
-void EspNowHelper::callDeviceMessageHandler(const DeviceMessage& message) {
-  if (deviceMessageHandler != nullptr) {
-    deviceMessageHandler(message);
+void EspNowHelper::callModuleMessageHandler(const ShieldModuleMessage& message) {
+  if (moduleMessageHandler != nullptr) {
+    moduleMessageHandler(message);
   }
 }
 void EspNowHelper::callDateMessageHandler(const DateMessage& message) {
@@ -93,9 +93,9 @@ void EspNowHelper::handleESPNowDataReceived(const uint8_t* mac, const uint8_t* i
   }
 
   if (header.deviceType == DEVICE_TYPE_MODULE) {
-    DeviceMessage deviceMsg;
-    memcpy(&deviceMsg, incomingDataRaw, sizeof(DeviceMessage));
-    instance->callDeviceMessageHandler(deviceMsg);
+    ShieldModuleMessage shieldModuleMsg;
+    memcpy(&shieldModuleMsg, incomingDataRaw, sizeof(ShieldModuleMessage));
+    instance->callModuleMessageHandler(shieldModuleMsg);
   } else if (header.deviceType == DEVICE_TYPE_DATE) {
     DateMessage dateMsg;
     memcpy(&dateMsg, incomingDataRaw, sizeof(DateMessage));
@@ -187,9 +187,9 @@ void EspNowHelper::sendScannerConnected() {
 }
 
 void EspNowHelper::sendModuleConnected() {
-  Serial.println("Sending Module Connected Message");
+  Serial.println("Sending Shield Module Connected Message");
 
-  DeviceMessage message;
+  ShieldModuleMessage message;
   message.deviceId = deviceId;
   message.deviceType = DEVICE_TYPE_MODULE;
   message.messageType = MSG_TYPE_CONNECT;
@@ -219,9 +219,9 @@ void EspNowHelper::sendDateUpdated(uint8_t month, uint8_t day, uint16_t year) {
 }
 
 void EspNowHelper::sendModuleUpdated(bool isCalibrated) {
-  Serial.println("Sending Module Updated Message...");
+  Serial.println("Sending Shield Module Updated Message...");
 
-  DeviceMessage message;
+  ShieldModuleMessage message;
   message.deviceId = deviceId;
   message.deviceType = DEVICE_TYPE_MODULE;
   message.messageType = MSG_TYPE_DATA;

@@ -11,7 +11,7 @@ class EspNowHelper {
 
     void begin(uint8_t* hubMacAddress, int deviceId);
 
-    void registerModuleMessageHandler(void (*handler)(const DeviceMessage&));
+    void registerModuleMessageHandler(void (*handler)(const ShieldModuleMessage&));
     void registerDateMessageHandler(void (*handler)(const DateMessage&));
     void registerScannerMessageHandler(void (*handler)(const ScannerMessage&));
 
@@ -28,11 +28,11 @@ class EspNowHelper {
     uint8_t* receiverAddress;
     int deviceId;
 
-    void (*deviceMessageHandler)(const DeviceMessage&) = nullptr;
+    void (*moduleMessageHandler)(const ShieldModuleMessage&) = nullptr;
     void (*dateMessageHandler)(const DateMessage&) = nullptr;
     void (*scannerMessageHandler)(const ScannerMessage&) = nullptr;
 
-    void callDeviceMessageHandler(const DeviceMessage& message);
+    void callModuleMessageHandler(const ShieldModuleMessage& message);
     void callDateMessageHandler(const DateMessage& message);
     void callScannerMessageHandler(const ScannerMessage& message);
 

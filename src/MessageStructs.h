@@ -19,8 +19,8 @@ struct EspNowHeader {
     uint8_t messageType;
 };
 
-// Device message (connection/calibration status)
-struct DeviceMessage {
+// Shield Module message (connection/calibration status)
+struct ShieldModuleMessage {
     uint8_t deviceId;
     uint8_t deviceType;
     uint8_t messageType;
@@ -52,5 +52,4 @@ struct DateMessage {
 struct DeviceState {
     bool available = false;
     bool calibrated = false;
-    unsigned long lastSeen = 0;
 };
