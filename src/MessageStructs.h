@@ -48,8 +48,8 @@ struct DateMessage {
     uint16_t year;
 };
 
-// Device state tracking
-struct DeviceState {
+// Shield Module state tracking
+struct ModuleState {
     bool available = false;
     bool calibrated = false;
 };
