@@ -1,6 +1,6 @@
 {
   "name": "TimeMachineShared",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Shared data structures and utilities for Time Machine ESP32 nodes",
   "keywords": ["esp32", "platformio", "shared"],
   "repository": {
