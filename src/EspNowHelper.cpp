@@ -52,6 +52,10 @@ void EspNowHelper::registerOrientationMessageHandler(
     void (*handler)(const OrientationSubmissionMessage&)) {
   orientationMessageHandler = handler;
 }
+void EspNowHelper::registerOrientationProgressMessageHandler(
+    void (*handler)(const OrientationProgressMessage&)) {
+  orientationProgressMessageHandler = handler;
+}
 
 void EspNowHelper::callModuleMessageHandler(const ShieldModuleMessage& message) {
   if (moduleMessageHandler != nullptr) {
@@ -71,6 +75,12 @@ void EspNowHelper::callScannerMessageHandler(const ScannerMessage& message) {
 void EspNowHelper::callOrientationMessageHandler(const OrientationSubmissionMessage& message) {
   if (orientationMessageHandler != nullptr) {
     orientationMessageHandler(message);
+  }
+}
+void EspNowHelper::callOrientationProgressMessageHandler(
+    const OrientationProgressMessage& message) {
+  if (orientationProgressMessageHandler != nullptr) {
+    orientationProgressMessageHandler(message);
   }
 }
 
@@ -117,6 +127,10 @@ void EspNowHelper::handleESPNowDataReceived(const uint8_t* mac, const uint8_t* i
     OrientationSubmissionMessage orientationMsg;
     memcpy(&orientationMsg, incomingDataRaw, sizeof(OrientationSubmissionMessage));
     instance->callOrientationMessageHandler(orientationMsg);
+  } else if (header.deviceType == DEVICE_TYPE_ORIENTATION_MASTER_SHIELD_MODULE) {
+    OrientationProgressMessage orientationProgressMsg;
+    memcpy(&orientationProgressMsg, incomingDataRaw, sizeof(OrientationProgressMessage));
+    instance->callOrientationProgressMessageHandler(orientationProgressMsg);
   } else {
     Serial.println("Unknown message type received.");
   }
@@ -278,6 +292,21 @@ void EspNowHelper::sendOrientationUpdated(uint8_t* targetAddress, uint16_t roll,
   Serial.println(round);
   Serial.print("  → Success: ");
   Serial.println(success ? "true" : "false");
+
+  sendMessage(targetAddress, (EspNowHeader&)message, sizeof(message));
+}
+
+void EspNowHelper::sendOrientationProgressUpdated(uint8_t* targetAddress, uint8_t round) {
+  Serial.println("Sending Orientation Progress Updated Message...");
+
+  OrientationProgressMessage message;
+  message.deviceId = deviceId;
+  message.deviceType = DEVICE_TYPE_ORIENTATION_MASTER_SHIELD_MODULE;
+  message.messageType = MSG_TYPE_DATA;
+  message.round = round;
+
+  Serial.print("  → Round: ");
+  Serial.println(round);
 
   sendMessage(targetAddress, (EspNowHeader&)message, sizeof(message));
 }

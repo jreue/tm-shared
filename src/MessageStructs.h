@@ -8,6 +8,7 @@
 #define DEVICE_TYPE_SCANNER 2
 #define DEVICE_TYPE_MODULE 3
 #define DEVICE_TYPE_ORIENTATION_SLAVE_SHIELD_MODULE 4
+#define DEVICE_TYPE_ORIENTATION_MASTER_SHIELD_MODULE 5
 
 // Message types
 #define MSG_TYPE_CONNECT 0
@@ -67,4 +68,12 @@ struct OrientationSubmissionMessage {
 
     uint8_t round;
     boolean success;
+};
+
+struct OrientationProgressMessage {
+    uint8_t deviceId;
+    uint8_t deviceType;
+    uint8_t messageType;
+
+    uint8_t round;
 };
