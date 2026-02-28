@@ -48,6 +48,10 @@ void EspNowHelper::registerDateMessageHandler(void (*handler)(const DateMessage&
 void EspNowHelper::registerScannerMessageHandler(void (*handler)(const ScannerMessage&)) {
   scannerMessageHandler = handler;
 }
+void EspNowHelper::registerOrientationMessageHandler(
+    void (*handler)(const OrientationSubmissionMessage&)) {
+  orientationMessageHandler = handler;
+}
 
 void EspNowHelper::callModuleMessageHandler(const ShieldModuleMessage& message) {
   if (moduleMessageHandler != nullptr) {
@@ -62,6 +66,11 @@ void EspNowHelper::callDateMessageHandler(const DateMessage& message) {
 void EspNowHelper::callScannerMessageHandler(const ScannerMessage& message) {
   if (scannerMessageHandler != nullptr) {
     scannerMessageHandler(message);
+  }
+}
+void EspNowHelper::callOrientationMessageHandler(const OrientationSubmissionMessage& message) {
+  if (orientationMessageHandler != nullptr) {
+    orientationMessageHandler(message);
   }
 }
 
@@ -104,6 +113,10 @@ void EspNowHelper::handleESPNowDataReceived(const uint8_t* mac, const uint8_t* i
     ScannerMessage scannerMsg;
     memcpy(&scannerMsg, incomingDataRaw, sizeof(ScannerMessage));
     instance->callScannerMessageHandler(scannerMsg);
+  } else if (header.deviceType == DEVICE_TYPE_ORIENTATION_SLAVE_SHIELD_MODULE) {
+    OrientationSubmissionMessage orientationMsg;
+    memcpy(&orientationMsg, incomingDataRaw, sizeof(OrientationSubmissionMessage));
+    instance->callOrientationMessageHandler(orientationMsg);
   } else {
     Serial.println("Unknown message type received.");
   }
@@ -237,6 +250,34 @@ void EspNowHelper::sendModuleUpdated(uint8_t* targetAddress, bool isCalibrated) 
 
   Serial.print("  → isCalibrated: ");
   Serial.println(isCalibrated ? "true" : "false");
+
+  sendMessage(targetAddress, (EspNowHeader&)message, sizeof(message));
+}
+
+void EspNowHelper::sendOrientationUpdated(uint8_t* targetAddress, uint16_t roll, uint16_t pitch,
+                                          uint16_t yaw, uint8_t round, boolean success) {
+  Serial.println("Sending Orientation Updated Message...");
+
+  OrientationSubmissionMessage message;
+  message.deviceId = deviceId;
+  message.deviceType = DEVICE_TYPE_ORIENTATION_SLAVE_SHIELD_MODULE;
+  message.messageType = MSG_TYPE_DATA;
+  message.roll = roll;
+  message.pitch = pitch;
+  message.yaw = yaw;
+  message.round = round;
+  message.success = success;
+
+  Serial.print("  → Roll: ");
+  Serial.println(roll);
+  Serial.print("  → Pitch: ");
+  Serial.println(pitch);
+  Serial.print("  → Yaw: ");
+  Serial.println(yaw);
+  Serial.print("  → Round: ");
+  Serial.println(round);
+  Serial.print("  → Success: ");
+  Serial.println(success ? "true" : "false");
 
   sendMessage(targetAddress, (EspNowHeader&)message, sizeof(message));
 }

@@ -15,6 +15,7 @@ class EspNowHelper {
     void registerModuleMessageHandler(void (*handler)(const ShieldModuleMessage&));
     void registerDateMessageHandler(void (*handler)(const DateMessage&));
     void registerScannerMessageHandler(void (*handler)(const ScannerMessage&));
+    void registerOrientationMessageHandler(void (*handler)(const OrientationSubmissionMessage&));
 
     void sendDateConnected(uint8_t* targetAddress);
     void sendScannerConnected(uint8_t* targetAddress);
@@ -22,6 +23,8 @@ class EspNowHelper {
 
     void sendDateUpdated(uint8_t* targetAddress, uint8_t month, uint8_t day, uint16_t year);
     void sendModuleUpdated(uint8_t* targetAddress, bool isCalibrated);
+    void sendOrientationUpdated(uint8_t* targetAddress, uint16_t roll, uint16_t pitch, uint16_t yaw,
+                                uint8_t round, boolean success);
 
   private:
     static EspNowHelper* instance;
@@ -31,10 +34,12 @@ class EspNowHelper {
     void (*moduleMessageHandler)(const ShieldModuleMessage&) = nullptr;
     void (*dateMessageHandler)(const DateMessage&) = nullptr;
     void (*scannerMessageHandler)(const ScannerMessage&) = nullptr;
+    void (*orientationMessageHandler)(const OrientationSubmissionMessage&) = nullptr;
 
     void callModuleMessageHandler(const ShieldModuleMessage& message);
     void callDateMessageHandler(const DateMessage& message);
     void callScannerMessageHandler(const ScannerMessage& message);
+    void callOrientationMessageHandler(const OrientationSubmissionMessage& message);
 
     void sendMessage(uint8_t* targetAddress, EspNowHeader& message, size_t messageSize);
 

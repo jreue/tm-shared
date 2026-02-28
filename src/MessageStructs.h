@@ -7,6 +7,7 @@
 #define DEVICE_TYPE_DATE 1
 #define DEVICE_TYPE_SCANNER 2
 #define DEVICE_TYPE_MODULE 3
+#define DEVICE_TYPE_ORIENTATION_SLAVE_SHIELD_MODULE 4
 
 // Message types
 #define MSG_TYPE_CONNECT 0
@@ -52,4 +53,18 @@ struct DateMessage {
 struct ModuleState {
     bool available = false;
     bool calibrated = false;
+};
+
+// Orientation Shield Module submission message
+struct OrientationSubmissionMessage {
+    uint8_t deviceId;
+    uint8_t deviceType;
+    uint8_t messageType;
+
+    uint16_t roll;
+    uint16_t pitch;
+    uint16_t yaw;
+
+    uint8_t round;
+    boolean success;
 };
