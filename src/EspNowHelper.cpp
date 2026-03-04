@@ -296,7 +296,8 @@ void EspNowHelper::sendOrientationUpdated(uint8_t* targetAddress, uint16_t roll,
   sendMessage(targetAddress, (EspNowHeader&)message, sizeof(message));
 }
 
-void EspNowHelper::sendOrientationProgressUpdated(uint8_t* targetAddress, uint8_t round) {
+void EspNowHelper::sendOrientationProgressUpdated(uint8_t* targetAddress, uint8_t round,
+                                                  boolean isFinalized) {
   Serial.println("Sending Orientation Progress Updated Message...");
 
   OrientationProgressMessage message;
@@ -304,9 +305,12 @@ void EspNowHelper::sendOrientationProgressUpdated(uint8_t* targetAddress, uint8_
   message.deviceType = DEVICE_TYPE_ORIENTATION_MASTER_SHIELD_MODULE;
   message.messageType = MSG_TYPE_DATA;
   message.round = round;
+  message.isFinalized = isFinalized;
 
   Serial.print("  → Round: ");
   Serial.println(round);
+  Serial.print("  → isFinalized: ");
+  Serial.println(isFinalized ? "true" : "false");
 
   sendMessage(targetAddress, (EspNowHeader&)message, sizeof(message));
 }

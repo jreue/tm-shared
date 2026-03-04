@@ -76,4 +76,5 @@ struct OrientationProgressMessage {
     uint8_t messageType;
 
     uint8_t round;
+    boolean isFinalized;
 };

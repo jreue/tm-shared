@@ -27,7 +27,7 @@ class EspNowHelper {
     void sendModuleUpdated(uint8_t* targetAddress, bool isCalibrated);
     void sendOrientationUpdated(uint8_t* targetAddress, uint16_t roll, uint16_t pitch, uint16_t yaw,
                                 uint8_t round, boolean success);
-    void sendOrientationProgressUpdated(uint8_t* targetAddress, uint8_t round);
+    void sendOrientationProgressUpdated(uint8_t* targetAddress, uint8_t round, boolean isFinalized);
 
   private:
     static EspNowHelper* instance;
