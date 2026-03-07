@@ -52,9 +52,13 @@ void EspNowHelper::registerOrientationMessageHandler(
     void (*handler)(const OrientationSubmissionMessage&)) {
   orientationMessageHandler = handler;
 }
-void EspNowHelper::registerOrientationProgressMessageHandler(
-    void (*handler)(const OrientationProgressMessage&)) {
-  orientationProgressMessageHandler = handler;
+void EspNowHelper::registerOrientationPhaseMessageHandler(
+    void (*handler)(const OrientationPhaseMessage&)) {
+  orientationPhaseMessageHandler = handler;
+}
+void EspNowHelper::registerOrientationTransmissionHandler(
+    void (*handler)(const OrientationTransmissionMessage&)) {
+  orientationTransmissionHandler = handler;
 }
 
 void EspNowHelper::callModuleMessageHandler(const ShieldModuleMessage& message) {
@@ -77,10 +81,15 @@ void EspNowHelper::callOrientationMessageHandler(const OrientationSubmissionMess
     orientationMessageHandler(message);
   }
 }
-void EspNowHelper::callOrientationProgressMessageHandler(
-    const OrientationProgressMessage& message) {
-  if (orientationProgressMessageHandler != nullptr) {
-    orientationProgressMessageHandler(message);
+void EspNowHelper::callOrientationPhaseMessageHandler(const OrientationPhaseMessage& message) {
+  if (orientationPhaseMessageHandler != nullptr) {
+    orientationPhaseMessageHandler(message);
+  }
+}
+void EspNowHelper::callOrientationTransmissionHandler(
+    const OrientationTransmissionMessage& message) {
+  if (orientationTransmissionHandler != nullptr) {
+    orientationTransmissionHandler(message);
   }
 }
 
@@ -123,14 +132,21 @@ void EspNowHelper::handleESPNowDataReceived(const uint8_t* mac, const uint8_t* i
     ScannerMessage scannerMsg;
     memcpy(&scannerMsg, incomingDataRaw, sizeof(ScannerMessage));
     instance->callScannerMessageHandler(scannerMsg);
-  } else if (header.deviceType == DEVICE_TYPE_ORIENTATION_SLAVE_SHIELD_MODULE) {
+  } else if (header.deviceType == DEVICE_TYPE_ORIENTATION_SHIELD_MODULE &&
+             header.messageType == MSG_TYPE_DATA_ORIENTATION_SUBMISSION) {
     OrientationSubmissionMessage orientationMsg;
     memcpy(&orientationMsg, incomingDataRaw, sizeof(OrientationSubmissionMessage));
     instance->callOrientationMessageHandler(orientationMsg);
-  } else if (header.deviceType == DEVICE_TYPE_ORIENTATION_MASTER_SHIELD_MODULE) {
-    OrientationProgressMessage orientationProgressMsg;
-    memcpy(&orientationProgressMsg, incomingDataRaw, sizeof(OrientationProgressMessage));
-    instance->callOrientationProgressMessageHandler(orientationProgressMsg);
+  } else if (header.deviceType == DEVICE_TYPE_ORIENTATION_SHIELD_MODULE &&
+             header.messageType == MSG_TYPE_DATA_ORIENTATION_PHASE_UPDATE) {
+    OrientationPhaseMessage orientationPhaseMsg;
+    memcpy(&orientationPhaseMsg, incomingDataRaw, sizeof(OrientationPhaseMessage));
+    instance->callOrientationPhaseMessageHandler(orientationPhaseMsg);
+  } else if (header.deviceType == DEVICE_TYPE_ORIENTATION_SHIELD_MODULE &&
+             header.messageType == MSG_TYPE_DATA_ORIENTATION_TRANSMISSION) {
+    OrientationTransmissionMessage orientationTransmissionMsg;
+    memcpy(&orientationTransmissionMsg, incomingDataRaw, sizeof(OrientationTransmissionMessage));
+    instance->callOrientationTransmissionHandler(orientationTransmissionMsg);
   } else {
     Serial.println("Unknown message type received.");
   }
@@ -268,18 +284,18 @@ void EspNowHelper::sendModuleUpdated(uint8_t* targetAddress, bool isCalibrated) 
   sendMessage(targetAddress, (EspNowHeader&)message, sizeof(message));
 }
 
-void EspNowHelper::sendOrientationUpdated(uint8_t* targetAddress, uint16_t roll, uint16_t pitch,
-                                          uint16_t yaw, uint8_t round, boolean success) {
-  Serial.println("Sending Orientation Updated Message...");
+void EspNowHelper::sendOrientationSubmission(uint8_t* targetAddress, uint16_t roll, uint16_t pitch,
+                                             uint16_t yaw, uint8_t phase, boolean success) {
+  Serial.println("Sending Orientation Submission Message...");
 
   OrientationSubmissionMessage message;
   message.deviceId = deviceId;
-  message.deviceType = DEVICE_TYPE_ORIENTATION_SLAVE_SHIELD_MODULE;
-  message.messageType = MSG_TYPE_DATA;
+  message.deviceType = DEVICE_TYPE_ORIENTATION_SHIELD_MODULE;
+  message.messageType = MSG_TYPE_DATA_ORIENTATION_SUBMISSION;
   message.roll = roll;
   message.pitch = pitch;
   message.yaw = yaw;
-  message.round = round;
+  message.phase = phase;
   message.success = success;
 
   Serial.print("  → Roll: ");
@@ -288,29 +304,40 @@ void EspNowHelper::sendOrientationUpdated(uint8_t* targetAddress, uint16_t roll,
   Serial.println(pitch);
   Serial.print("  → Yaw: ");
   Serial.println(yaw);
-  Serial.print("  → Round: ");
-  Serial.println(round);
+  Serial.print("  → Phase: ");
+  Serial.println(phase);
   Serial.print("  → Success: ");
   Serial.println(success ? "true" : "false");
 
   sendMessage(targetAddress, (EspNowHeader&)message, sizeof(message));
 }
 
-void EspNowHelper::sendOrientationProgressUpdated(uint8_t* targetAddress, uint8_t round,
-                                                  boolean isFinalized) {
-  Serial.println("Sending Orientation Progress Updated Message...");
+void EspNowHelper::sendOrientationPhaseUpdated(uint8_t* targetAddress, uint8_t phase) {
+  Serial.println("Sending Orientation Phase Updated Message...");
 
-  OrientationProgressMessage message;
+  OrientationPhaseMessage message;
   message.deviceId = deviceId;
-  message.deviceType = DEVICE_TYPE_ORIENTATION_MASTER_SHIELD_MODULE;
-  message.messageType = MSG_TYPE_DATA;
-  message.round = round;
-  message.isFinalized = isFinalized;
+  message.deviceType = DEVICE_TYPE_ORIENTATION_SHIELD_MODULE;
+  message.messageType = MSG_TYPE_DATA_ORIENTATION_PHASE_UPDATE;
+  message.phase = phase;
 
-  Serial.print("  → Round: ");
-  Serial.println(round);
-  Serial.print("  → isFinalized: ");
-  Serial.println(isFinalized ? "true" : "false");
+  Serial.print("  → Phase: ");
+  Serial.println(phase);
+
+  sendMessage(targetAddress, (EspNowHeader&)message, sizeof(message));
+}
+
+void EspNowHelper::sendOrientationTransmission(uint8_t* targetAddress, boolean success) {
+  Serial.println("Sending Orientation Transmission Message...");
+
+  OrientationTransmissionMessage message;
+  message.deviceId = deviceId;
+  message.deviceType = DEVICE_TYPE_ORIENTATION_SHIELD_MODULE;
+  message.messageType = MSG_TYPE_DATA_ORIENTATION_TRANSMISSION;
+  message.success = success;
+
+  Serial.print("  → Success: ");
+  Serial.println(success ? "true" : "false");
 
   sendMessage(targetAddress, (EspNowHeader&)message, sizeof(message));
 }

@@ -7,12 +7,14 @@
 #define DEVICE_TYPE_DATE 1
 #define DEVICE_TYPE_SCANNER 2
 #define DEVICE_TYPE_MODULE 3
-#define DEVICE_TYPE_ORIENTATION_SLAVE_SHIELD_MODULE 4
-#define DEVICE_TYPE_ORIENTATION_MASTER_SHIELD_MODULE 5
+#define DEVICE_TYPE_ORIENTATION_SHIELD_MODULE 4
 
 // Message types
 #define MSG_TYPE_CONNECT 0
 #define MSG_TYPE_DATA 1
+#define MSG_TYPE_DATA_ORIENTATION_SUBMISSION 2
+#define MSG_TYPE_DATA_ORIENTATION_PHASE_UPDATE 3
+#define MSG_TYPE_DATA_ORIENTATION_TRANSMISSION 4
 
 // Common header for all messages
 struct EspNowHeader {
@@ -56,7 +58,7 @@ struct ModuleState {
     bool calibrated = false;
 };
 
-// Orientation Shield Module submission message
+// Orientation Shield Module - Submission message
 struct OrientationSubmissionMessage {
     uint8_t deviceId;
     uint8_t deviceType;
@@ -66,15 +68,24 @@ struct OrientationSubmissionMessage {
     uint16_t pitch;
     uint16_t yaw;
 
-    uint8_t round;
+    uint8_t phase;
     boolean success;
 };
 
-struct OrientationProgressMessage {
+// Orientation Shield Module - Phase update message
+struct OrientationPhaseMessage {
     uint8_t deviceId;
     uint8_t deviceType;
     uint8_t messageType;
 
-    uint8_t round;
-    boolean isFinalized;
+    uint8_t phase;
+};
+
+// Orientation Shield Module - Final Transmit message
+struct OrientationTransmissionMessage {
+    uint8_t deviceId;
+    uint8_t deviceType;
+    uint8_t messageType;
+
+    boolean success;
 };
