@@ -27,6 +27,7 @@ class EspNowHelper {
 
     void sendDateUpdated(uint8_t* targetAddress, uint8_t month, uint8_t day, uint16_t year);
     void sendModuleUpdated(uint8_t* targetAddress, bool isCalibrated);
+    void sendModuleOverride(uint8_t* targetAddress, int fromDeviceId, bool isCalibrated);
 
     void sendOrientationSubmission(uint8_t* targetAddress, uint16_t roll, uint16_t pitch,
                                    uint16_t yaw, uint8_t phase, boolean success);

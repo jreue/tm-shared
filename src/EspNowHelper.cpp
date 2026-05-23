@@ -284,6 +284,24 @@ void EspNowHelper::sendModuleUpdated(uint8_t* targetAddress, bool isCalibrated) 
   sendMessage(targetAddress, (EspNowHeader&)message, sizeof(message));
 }
 
+// Special function to spoof messages from other modules via Mikes 858 Device
+void EspNowHelper::sendModuleOverride(uint8_t* targetAddress, int fromDeviceId, bool isCalibrated) {
+  Serial.println("Sending 858 Shield Module Override Message...");
+
+  ShieldModuleMessage message;
+  message.deviceId = fromDeviceId;
+  message.deviceType = DEVICE_TYPE_MODULE;
+  message.messageType = MSG_TYPE_DATA;
+  message.isCalibrated = isCalibrated;
+
+  Serial.print("  → Device ID: ");
+  Serial.println(fromDeviceId);
+  Serial.print("  → isCalibrated: ");
+  Serial.println(isCalibrated ? "true" : "false");
+
+  sendMessage(targetAddress, (EspNowHeader&)message, sizeof(message));
+}
+
 void EspNowHelper::sendOrientationSubmission(uint8_t* targetAddress, uint16_t roll, uint16_t pitch,
                                              uint16_t yaw, uint8_t phase, boolean success) {
   Serial.println("Sending Orientation Submission Message...");
