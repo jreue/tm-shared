@@ -48,6 +48,9 @@ void EspNowHelper::registerDateMessageHandler(void (*handler)(const DateMessage&
 void EspNowHelper::registerScannerMessageHandler(void (*handler)(const ScannerMessage&)) {
   scannerMessageHandler = handler;
 }
+void EspNowHelper::registerDevice858MessageHandler(void (*handler)(const Device858Message&)) {
+  device858MessageHandler = handler;
+}
 void EspNowHelper::registerOrientationMessageHandler(
     void (*handler)(const OrientationSubmissionMessage&)) {
   orientationMessageHandler = handler;
@@ -74,6 +77,11 @@ void EspNowHelper::callDateMessageHandler(const DateMessage& message) {
 void EspNowHelper::callScannerMessageHandler(const ScannerMessage& message) {
   if (scannerMessageHandler != nullptr) {
     scannerMessageHandler(message);
+  }
+}
+void EspNowHelper::callDevice858MessageHandler(const Device858Message& message) {
+  if (device858MessageHandler != nullptr) {
+    device858MessageHandler(message);
   }
 }
 void EspNowHelper::callOrientationMessageHandler(const OrientationSubmissionMessage& message) {
@@ -132,6 +140,10 @@ void EspNowHelper::handleESPNowDataReceived(const uint8_t* mac, const uint8_t* i
     ScannerMessage scannerMsg;
     memcpy(&scannerMsg, incomingDataRaw, sizeof(ScannerMessage));
     instance->callScannerMessageHandler(scannerMsg);
+  } else if (header.deviceType == DEVICE_TYPE_858) {
+    Device858Message device858Msg;
+    memcpy(&device858Msg, incomingDataRaw, sizeof(Device858Message));
+    instance->callDevice858MessageHandler(device858Msg);
   } else if (header.deviceType == DEVICE_TYPE_ORIENTATION_SHIELD_MODULE &&
              header.messageType == MSG_TYPE_DATA_ORIENTATION_SUBMISSION) {
     OrientationSubmissionMessage orientationMsg;
@@ -298,6 +310,24 @@ void EspNowHelper::sendModuleOverride(uint8_t* targetAddress, int fromDeviceId, 
   Serial.println(fromDeviceId);
   Serial.print("  → isCalibrated: ");
   Serial.println(isCalibrated ? "true" : "false");
+
+  sendMessage(targetAddress, (EspNowHeader&)message, sizeof(message));
+}
+
+// Special function to spoof travel override message via Mikes 858 Device
+void EspNowHelper::sendTravelOverride(uint8_t* targetAddress, int fromDeviceId) {
+  Serial.println("Sending 858 Travel Override Message...");
+
+  Device858Message message;
+  message.deviceId = fromDeviceId;
+  message.deviceType = DEVICE_TYPE_858;
+  message.messageType = MSG_TYPE_DATA;
+  message.doTravelOverride = true;
+  message.doStartupOverride = false;
+  message.doResetOverride = false;
+
+  Serial.print("  → Device ID: ");
+  Serial.println(fromDeviceId);
 
   sendMessage(targetAddress, (EspNowHeader&)message, sizeof(message));
 }

@@ -15,6 +15,7 @@ class EspNowHelper {
     void registerModuleMessageHandler(void (*handler)(const ShieldModuleMessage&));
     void registerDateMessageHandler(void (*handler)(const DateMessage&));
     void registerScannerMessageHandler(void (*handler)(const ScannerMessage&));
+    void registerDevice858MessageHandler(void (*handler)(const Device858Message&));
 
     void registerOrientationMessageHandler(void (*handler)(const OrientationSubmissionMessage&));
     void registerOrientationPhaseMessageHandler(void (*handler)(const OrientationPhaseMessage&));
@@ -28,6 +29,7 @@ class EspNowHelper {
     void sendDateUpdated(uint8_t* targetAddress, uint8_t month, uint8_t day, uint16_t year);
     void sendModuleUpdated(uint8_t* targetAddress, bool isCalibrated);
     void sendModuleOverride(uint8_t* targetAddress, int fromDeviceId, bool isCalibrated);
+    void sendTravelOverride(uint8_t* targetAddress, int fromDeviceId);
 
     void sendOrientationSubmission(uint8_t* targetAddress, uint16_t roll, uint16_t pitch,
                                    uint16_t yaw, uint8_t phase, boolean success);
@@ -42,6 +44,8 @@ class EspNowHelper {
     void (*moduleMessageHandler)(const ShieldModuleMessage&) = nullptr;
     void (*dateMessageHandler)(const DateMessage&) = nullptr;
     void (*scannerMessageHandler)(const ScannerMessage&) = nullptr;
+    void (*device858MessageHandler)(const Device858Message&) = nullptr;
+
     void (*orientationMessageHandler)(const OrientationSubmissionMessage&) = nullptr;
     void (*orientationPhaseMessageHandler)(const OrientationPhaseMessage&) = nullptr;
     void (*orientationTransmissionHandler)(const OrientationTransmissionMessage&) = nullptr;
@@ -49,6 +53,8 @@ class EspNowHelper {
     void callModuleMessageHandler(const ShieldModuleMessage& message);
     void callDateMessageHandler(const DateMessage& message);
     void callScannerMessageHandler(const ScannerMessage& message);
+    void callDevice858MessageHandler(const Device858Message& message);
+
     void callOrientationMessageHandler(const OrientationSubmissionMessage& message);
     void callOrientationPhaseMessageHandler(const OrientationPhaseMessage& message);
     void callOrientationTransmissionHandler(const OrientationTransmissionMessage& message);

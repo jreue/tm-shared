@@ -8,6 +8,7 @@
 #define DEVICE_TYPE_SCANNER 2
 #define DEVICE_TYPE_MODULE 3
 #define DEVICE_TYPE_ORIENTATION_SHIELD_MODULE 4
+#define DEVICE_TYPE_858 5
 
 // Message types
 #define MSG_TYPE_CONNECT 0
@@ -50,6 +51,17 @@ struct DateMessage {
     uint8_t month;
     uint8_t day;
     uint16_t year;
+};
+
+// 858 message
+struct Device858Message {
+    uint8_t deviceId;
+    uint8_t deviceType;
+    uint8_t messageType;
+
+    bool doTravelOverride;
+    bool doStartupOverride;  // not used yet
+    bool doResetOverride;    // not used yet
 };
 
 // Shield Module state tracking
