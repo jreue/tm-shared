@@ -61,7 +61,15 @@ struct Device858Message {
 
     bool doTravelOverride;
     bool doStartupOverride;  // not used yet
-    bool doResetOverride;    // not used yet
+    bool doResetOverride;
+};
+
+struct HubMessage {
+    uint8_t deviceId;
+    uint8_t deviceType;
+    uint8_t messageType;
+
+    uint8_t effectId;
 };
 
 // Shield Module state tracking

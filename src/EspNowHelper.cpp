@@ -51,6 +51,9 @@ void EspNowHelper::registerScannerMessageHandler(void (*handler)(const ScannerMe
 void EspNowHelper::registerDevice858MessageHandler(void (*handler)(const Device858Message&)) {
   device858MessageHandler = handler;
 }
+void EspNowHelper::registerHubMessageHandler(void (*handler)(const HubMessage&)) {
+  hubMessageHandler = handler;
+}
 void EspNowHelper::registerOrientationMessageHandler(
     void (*handler)(const OrientationSubmissionMessage&)) {
   orientationMessageHandler = handler;
@@ -82,6 +85,11 @@ void EspNowHelper::callScannerMessageHandler(const ScannerMessage& message) {
 void EspNowHelper::callDevice858MessageHandler(const Device858Message& message) {
   if (device858MessageHandler != nullptr) {
     device858MessageHandler(message);
+  }
+}
+void EspNowHelper::callHubMessageHandler(const HubMessage& message) {
+  if (hubMessageHandler != nullptr) {
+    hubMessageHandler(message);
   }
 }
 void EspNowHelper::callOrientationMessageHandler(const OrientationSubmissionMessage& message) {
@@ -144,6 +152,10 @@ void EspNowHelper::handleESPNowDataReceived(const uint8_t* mac, const uint8_t* i
     Device858Message device858Msg;
     memcpy(&device858Msg, incomingDataRaw, sizeof(Device858Message));
     instance->callDevice858MessageHandler(device858Msg);
+  } else if (header.deviceId == DEVICE_TYPE_HUB) {
+    HubMessage hubMsg;
+    memcpy(&hubMsg, incomingDataRaw, sizeof(HubMessage));
+    instance->callHubMessageHandler(hubMsg);
   } else if (header.deviceType == DEVICE_TYPE_ORIENTATION_SHIELD_MODULE &&
              header.messageType == MSG_TYPE_DATA_ORIENTATION_SUBMISSION) {
     OrientationSubmissionMessage orientationMsg;
@@ -328,6 +340,38 @@ void EspNowHelper::sendTravelOverride(uint8_t* targetAddress, int fromDeviceId) 
 
   Serial.print("  → Device ID: ");
   Serial.println(fromDeviceId);
+
+  sendMessage(targetAddress, (EspNowHeader&)message, sizeof(message));
+}
+
+void EspNowHelper::sendResetOverride(uint8_t* targetAddress, int fromDeviceId) {
+  Serial.println("Sending 858 Reset Override Message...");
+
+  Device858Message message;
+  message.deviceId = fromDeviceId;
+  message.deviceType = DEVICE_TYPE_858;
+  message.messageType = MSG_TYPE_DATA;
+  message.doTravelOverride = false;
+  message.doStartupOverride = false;
+  message.doResetOverride = true;
+
+  Serial.print("  → Device ID: ");
+  Serial.println(fromDeviceId);
+
+  sendMessage(targetAddress, (EspNowHeader&)message, sizeof(message));
+}
+
+void EspNowHelper::sendHubEffect(uint8_t* targetAddress, uint8_t effectId) {
+  Serial.println("Sending Hub Effect Message...");
+
+  HubMessage message;
+  message.deviceId = deviceId;
+  message.deviceType = DEVICE_TYPE_HUB;
+  message.messageType = MSG_TYPE_DATA;
+  message.effectId = effectId;
+
+  Serial.print("  → Effect ID: ");
+  Serial.println(effectId);
 
   sendMessage(targetAddress, (EspNowHeader&)message, sizeof(message));
 }
