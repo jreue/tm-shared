@@ -152,7 +152,7 @@ void EspNowHelper::handleESPNowDataReceived(const uint8_t* mac, const uint8_t* i
     Device858Message device858Msg;
     memcpy(&device858Msg, incomingDataRaw, sizeof(Device858Message));
     instance->callDevice858MessageHandler(device858Msg);
-  } else if (header.deviceId == DEVICE_TYPE_HUB) {
+  } else if (header.deviceType == DEVICE_TYPE_HUB) {
     HubMessage hubMsg;
     memcpy(&hubMsg, incomingDataRaw, sizeof(HubMessage));
     instance->callHubMessageHandler(hubMsg);
